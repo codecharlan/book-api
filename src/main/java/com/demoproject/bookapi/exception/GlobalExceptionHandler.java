@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,15 +26,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ApiResponse<>("Validation Failed", errors, NOT_ACCEPTABLE.value()), NOT_ACCEPTABLE);
     }
     @ExceptionHandler(UserNotFoundException.class)
-    @ResponseStatus(BAD_REQUEST)
+    @ResponseStatus(NOT_FOUND)
     public ResponseEntity<ApiResponse<String>> handleUserNotFoundException(UserNotFoundException e) {
-        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), BAD_REQUEST.value()), BAD_REQUEST);
+        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), NOT_FOUND.value()), NOT_FOUND);
+    }
+    @ExceptionHandler(UserAlreadyExistException.class)
+    @ResponseStatus(CONFLICT)
+    public ResponseEntity<ApiResponse<String>> handleUserAlreadyExistException(UserAlreadyExistException e) {
+        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), CONFLICT.value()), CONFLICT);
     }
 
     @ExceptionHandler(BookAlreadyCreatedException.class)
-    @ResponseStatus(BAD_REQUEST)
+    @ResponseStatus(CONFLICT)
     public ResponseEntity<ApiResponse<String>> handleBookAlreadyCreatedException(BookAlreadyCreatedException e) {
-        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), BAD_REQUEST.value()), BAD_REQUEST);
+        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), CONFLICT.value()), CONFLICT);
     }
 
     @ExceptionHandler(BookCannotBeDeletedException.class)
@@ -44,9 +48,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), BAD_REQUEST.value()), BAD_REQUEST);
     }
     @ExceptionHandler(BookNotAvailableException.class)
-    @ResponseStatus(BAD_REQUEST)
+    @ResponseStatus(NOT_FOUND)
     public ResponseEntity<ApiResponse<String>> handleBookNotAvailableException(BookNotAvailableException e) {
-        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), BAD_REQUEST.value()), BAD_REQUEST);
+        return new ResponseEntity<>(new ApiResponse<>(e.getLocalizedMessage(), e.getMessage(), NOT_FOUND.value()), NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -1,19 +1,7 @@
 package com.demoproject.bookapi.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +18,8 @@ public class Book {
     private Long id;
     @Column(length = 100, nullable = false, unique = true)
     private String title;
-    @Column(length = 100, nullable = false)
-    private String author;
+    @Column(length = 100)
+    private List<String> authorsEmail = new ArrayList<>();
     @Column(length = 100, nullable = false)
     private String isbn;
     @Column(nullable = false)

@@ -1,15 +1,13 @@
 package com.demoproject.bookapi.services.serviceImpl;
 
 import com.demoproject.bookapi.dto.response.ApiResponse;
-import com.demoproject.bookapi.dto.request.BookRequest;
-import com.demoproject.bookapi.dto.response.BookResponse;
+import com.demoproject.bookapi.dto.request.BookRequestDto;
+import com.demoproject.bookapi.dto.response.BookResponseDto;
 import com.demoproject.bookapi.entity.Book;
 import com.demoproject.bookapi.entity.BorrowedBook;
 import com.demoproject.bookapi.entity.User;
-import com.demoproject.bookapi.exception.BookAlreadyCreatedException;
-import com.demoproject.bookapi.exception.BookCannotBeDeletedException;
-import com.demoproject.bookapi.exception.BookNotAvailableException;
-import com.demoproject.bookapi.exception.UserNotFoundException;
+import com.demoproject.bookapi.enums.Role;
+import com.demoproject.bookapi.exception.*;
 import com.demoproject.bookapi.repository.BookRepository;
 import com.demoproject.bookapi.repository.BorrowedBookRepository;
 import com.demoproject.bookapi.repository.UserRepository;
@@ -22,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,52 +34,68 @@ public class BookServiceImpl implements BookService {
     private final BorrowedBookRepository borrowedBookRepository;
     private final UserRepository userRepository;
     @Override
-    public ApiResponse<BookResponse> createBook(BookRequest newBook) {
-        validateBookAlreadyCreated(newBook.getTitle());
-        Book createdBook = createNewBook(newBook);
+    public ApiResponse<BookResponseDto> createBook(String email, BookRequestDto newBook) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent() && user.get().getRole().equals(Role.AUTHOR)&& newBook.getAuthorEmail() != null) {
+            validateOtherAuthorsRole(newBook.getAuthorEmail());
+        }
+        validateBookAlreadyCreated(newBook.getTitle(), newBook.getAuthorEmail());
+        Book createdBook = createNewBook(newBook, email);
         Book savedBook = bookRepository.save(createdBook);
-        BookResponse response = createBookResponse(savedBook);
+        BookResponseDto response = createBookResponse(savedBook);
         return new ApiResponse<>("Book Created Successfully", response, HttpStatus.CREATED.value());
     }
-    public void validateBookAlreadyCreated(String title){
-        Optional<Book> bookCheck = bookRepository.findByTitle(title);
+    public void validateBookAlreadyCreated(String title, List<String> authorsEmail){
+        Optional<Book> bookCheck = bookRepository.findByTitleAndAuthorsEmail(title, authorsEmail);
         if (bookCheck.isPresent()) {
             throw new BookAlreadyCreatedException("Book already created with " + bookCheck.get().getTitle());
         }
     }
-    private Book createNewBook(BookRequest newBook) {
+    public void validateOtherAuthorsRole(List<String> authorsEmail){
+        for (String authors : authorsEmail) {
+            User user = userRepository.findByEmail(authors)
+                    .orElseThrow(() -> new UserNotFoundException(("Author with email not found " + authors), HttpStatus.NOT_FOUND));
+            if (user.getRole().equals(Role.USER)) {
+                throw new UnAuthorizedException("Access Denied, Cannot Create a Book");
+            }
+    }
+    }
+    private Book createNewBook(BookRequestDto newBook, String email){
         return Book.builder()
                 .title(newBook.getTitle())
-                .author(newBook.getAuthor())
+                .authorsEmail(newBook.getAuthorEmail() == null ? Collections.singletonList(email) : newBook.getAuthorEmail())
                 .isbn(newBook.getIsbn())
                 .quantity(newBook.getQuantity())
                 .build();
     }
-    public BookResponse createBookResponse(Book savedBook){
-        BookResponse bookResponse = new BookResponse();
-        BeanUtils.copyProperties(savedBook, bookResponse);
-        return bookResponse;
+    public BookResponseDto createBookResponse(Book savedBook){
+        return BookResponseDto.builder()
+                .title(savedBook.getTitle())
+                .authors(savedBook.getAuthorsEmail())
+                .isbn(savedBook.getIsbn())
+                .quantity(savedBook.getQuantity())
+                .build();
     }
 
     @Override
-    public ApiResponse<BookResponse> editBook(Long id, Book updatedBook) {
-        Book retrivedBook = getBookById(id);
-        retrivedBook.setTitle(updatedBook.getTitle());
-        retrivedBook.setAuthor(updatedBook.getAuthor());
-        retrivedBook.setIsbn(updatedBook.getIsbn());
-        retrivedBook.setQuantity(updatedBook.getQuantity());
+    public ApiResponse<BookResponseDto> editBook(Long id, Book updatedBook) {
+        Book retrievedBook = getBookById(id);
+        retrievedBook.setTitle(updatedBook.getTitle());
+        retrievedBook.setAuthorsEmail(updatedBook.getAuthorsEmail());
+        retrievedBook.setIsbn(updatedBook.getIsbn());
+        retrievedBook.setQuantity(updatedBook.getQuantity());
 
-        validateBookAlreadyCreated(retrivedBook.getTitle());
+        validateBookAlreadyCreated(retrievedBook.getTitle(), retrievedBook.getAuthorsEmail());
 
-        Book savedBook = bookRepository.save(retrivedBook);
-        BookResponse response = createBookResponse(savedBook);
+        Book savedBook = bookRepository.save(retrievedBook);
+        BookResponseDto response = createBookResponse(savedBook);
         return new ApiResponse<>("Book Edited Successfully", response, HttpStatus.OK.value());
     }
 
     @Override
-    public ApiResponse<List<BookResponse>> getAllBooks() {
+    public ApiResponse<List<BookResponseDto>> getAllBooks() {
         List<Book> books = bookRepository.findAll();
-        List<BookResponse> responses = books.stream()
+        List<BookResponseDto> responses = books.stream()
                 .map(this::createBookResponse)
                 .collect(Collectors.toList());
         return new ApiResponse<>("Books Fetched Successfully", responses, HttpStatus.OK.value());
@@ -102,7 +117,7 @@ public class BookServiceImpl implements BookService {
         return new ApiResponse<>("Book Deleted Successfully", "Deleted", HttpStatus.NO_CONTENT.value());
     }
     @Override
-    public ApiResponse<BookResponse> borrowBook(Long bookId, Long userId) {
+    public ApiResponse<BookResponseDto> borrowBook(Long bookId, Long userId) {
         Book book = getBookById(bookId);
 
         if (book.getQuantity() <= 0) {
@@ -111,7 +126,7 @@ public class BookServiceImpl implements BookService {
 
         User existingUser = userRepository.findById(userId).orElse(null);
         if (existingUser == null) {
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("User Not Found", HttpStatus.NOT_FOUND);
         }
 
         BorrowedBook borrowedBook = createBorrowedBook(book, userId);
@@ -120,7 +135,7 @@ public class BookServiceImpl implements BookService {
         book.setQuantity(book.getQuantity() - 1);
         Book updatedBook = bookRepository.save(book);
 
-        BookResponse response = createBookResponse(updatedBook);
+        BookResponseDto response = createBookResponse(updatedBook);
         return new ApiResponse<>("Book Borrowed Successfully", response, HttpStatus.CREATED.value());
     }
     private BorrowedBook createBorrowedBook(Book requestedBook, Long userId) {
@@ -134,7 +149,7 @@ public class BookServiceImpl implements BookService {
                     .borrowedDate(LocalDate.now())
                     .build();
         } else {
-            throw new UserNotFoundException("User not found");
+            throw new UserNotFoundException("User Not Found", HttpStatus.NOT_FOUND);
         }
     }
     @Override
@@ -147,6 +162,6 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(book);
 
         borrowedBookRepository.delete(borrowedBook);
-        return new ApiResponse<>("Book Returned Successfully", "Success", HttpStatus.NO_CONTENT.value());
+        return new ApiResponse<>("Book Returned Successfully","Success", HttpStatus.NO_CONTENT.value());
     }
 }
