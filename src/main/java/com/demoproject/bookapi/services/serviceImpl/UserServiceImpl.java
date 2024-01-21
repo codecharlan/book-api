@@ -99,6 +99,7 @@ public class UserServiceImpl implements UserService {
     }
     private LoginResponseDto createLoginResponse(User savedUser, String token) {
         return LoginResponseDto.builder()
+                .id(savedUser.getId())
                 .fullName(savedUser.getFullName())
                 .email(savedUser.getEmail())
                 .jwtToken(token)

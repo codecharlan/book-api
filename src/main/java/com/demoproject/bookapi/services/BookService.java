@@ -11,7 +11,7 @@ import java.util.List;
 public interface BookService {
     ApiResponse<BookResponseDto> createBook(String email, BookRequestDto newBook);
 
-    ApiResponse<BookResponseDto> editBook(Long id, Book updatedBook);
+    ApiResponse<BookResponseDto> editBook(Long id, BookRequestDto updatedBook);
 
     ApiResponse<List<BookResponseDto>> getAllBooks();
 

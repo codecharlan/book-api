@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/register")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/login")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/cam-api/v1/users/register")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/cam-api/v1/users/login")).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtSecurityFilter,UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

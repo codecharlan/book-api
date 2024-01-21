@@ -32,7 +32,7 @@ public class BookController {
         return new ResponseEntity<>(response, httpStatus);
     }
     @PutMapping("/edit/{id}")
-    public ResponseEntity<ApiResponse<BookResponseDto>> editBook(@PathVariable Long id, @RequestBody Book updatedBook) {
+    public ResponseEntity<ApiResponse<BookResponseDto>> editBook(@PathVariable Long id, @RequestBody BookRequestDto updatedBook) {
         ApiResponse<BookResponseDto> response = bookService.editBook(id, updatedBook);
         HttpStatus httpStatus = HttpStatus.valueOf(response.status());
         return new ResponseEntity<>(response, httpStatus);
@@ -51,8 +51,8 @@ public class BookController {
         return new ResponseEntity<>(response, httpStatus);
     }
 
-    @PostMapping("/borrow/{id}/{userId}")
-    public ResponseEntity<ApiResponse<BookResponseDto>> borrowBook(@PathVariable Long id, @PathVariable Long userId) {
+    @PostMapping("/borrow/{id}")
+    public ResponseEntity<ApiResponse<BookResponseDto>> borrowBook(@PathVariable Long id, @RequestParam Long userId) {
         ApiResponse<BookResponseDto> response = bookService.borrowBook(id, userId);
         HttpStatus httpStatus = HttpStatus.valueOf(response.status());
         return new ResponseEntity<>(response, httpStatus);

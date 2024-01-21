@@ -1,12 +1,9 @@
 package com.demoproject.bookapi.dto.request;
 
-import com.demoproject.bookapi.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Setter
@@ -14,9 +11,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BookRequestDto {
+@ToString
+public class BookRequestDto implements Serializable {
     private String title;
     private List<String> authorEmail;
     private String isbn;
+    private BigDecimal price;
     private int quantity;
 }

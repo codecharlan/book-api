@@ -27,7 +27,6 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
         final String requestTokenHeader = request.getHeader("Authorization");
         String userEmail = null;
         String jwtToken = null;
-
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
             try {
@@ -55,6 +54,5 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-
     }
 }

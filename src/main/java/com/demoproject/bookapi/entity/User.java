@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
 @Builder
 @Table(name = "users")
 @Entity
-public class User {
+public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,6 +41,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private LocalDateTime lastLogin;
+    private BigDecimal balance = BigDecimal.valueOf(4500);
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Book> book = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)

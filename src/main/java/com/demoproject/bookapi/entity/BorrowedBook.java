@@ -3,13 +3,7 @@ package com.demoproject.bookapi.entity;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,4 +27,8 @@ public class BorrowedBook {
     private User user;
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate borrowedDate;
+    @JsonSerialize(using = LocalDateSerializer.class)
+    private LocalDate expectedReturnDate;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Transaction transaction;
 }

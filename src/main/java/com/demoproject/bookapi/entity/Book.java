@@ -3,6 +3,8 @@ package com.demoproject.bookapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,8 @@ public class Book {
     private String isbn;
     @Column(nullable = false)
     private int quantity;
+    @Column(nullable = false)
+    private BigDecimal price;
     @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
     private List<BorrowedBook> borrowedBooks = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)

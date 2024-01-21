@@ -8,12 +8,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegistrationRequestDto {
+public class RegistrationRequestDto implements Serializable {
     private String fullName;
     private String email;
     private String password;
